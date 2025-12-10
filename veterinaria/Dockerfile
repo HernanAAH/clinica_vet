@@ -1,21 +1,14 @@
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copia el contenido de la carpeta veterinaria (donde está el Dockerfile)
+COPY pom.xml .
+RUN mvn -q -e -B dependency:resolve
+
 COPY . .
+RUN mvn -DskipTests package
 
-# Da permisos al mvnw para poder ejecutarlo
-RUN chmod +x mvnw
-
-# Compila el proyecto con el wrapper de Maven
-RUN ./mvnw -B package -DskipTests
-
-# Segunda etapa: imagen liviana
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
-
-# Copia el jar generado en la etapa anterior
-COPY --from=build /app/target/*.jar app_veterinaria.jar
-
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app_veterinaria.jar"]
+CMD ["java", "-jar", "app.jar"]
