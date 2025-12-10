@@ -1,5 +1,10 @@
+FROM eclipse-temurin:21-jdk-jammy AS build
+WORKDIR /app
+COPY . .
+RUN ./mvnw -B package -DskipTests
+
 FROM eclipse-temurin:21-jdk-jammy
-ARG JAR_FILE=target/veterinaria-0.0.1.jar
-COPY ${JAR_FILE} app_veterinaria.jar
+WORKDIR /app
+COPY --from=build /app/target/*.jar app_veterinaria.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar","app_veterinaria.jar"]
+ENTRYPOINT ["java", "-jar", "app_veterinaria.jar"]
